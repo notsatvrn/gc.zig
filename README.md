@@ -1,6 +1,5 @@
 # gc.zig
-
-A [Zig](https://ziglang.org/) wrapper for [Boehm GC](https://www.hboehm.info/gc/).
+a [Zig](https://ziglang.org/) garbage collector interface for the [bdwgc Boehm GC](https://github.com/ivmai/bdwgc) garbage collector.
 
 ## Usage
 
