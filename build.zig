@@ -1,6 +1,17 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
+    // const dir = try std.fs.cwd().openDir("bdwgc", .{});
+    // defer dir.close();
+    // var count = 0;
+    // var iter = dir.iterate();
+    // while (try iter.next()) |_| {
+    //     count += 1;
+    // }
+    // if (count == 0) {
+    //     b.run(.{"git submodule update --init --recursive"});
+    // }
+
     const target = b.standardTargetOptions(.{});
 
     const optimize = b.standardOptimizeOption(.{});
@@ -34,7 +45,7 @@ fn setupBdwgcDependencies(
     target: std.Build.ResolvedTarget,
 ) void {
     compile.linkLibC();
-    compile.addIncludePath(b.path("bdwgc-master/include"));
+    compile.addIncludePath(b.path("bdwgc/include"));
 
     if (target.result.isDarwin()) compile.linkFramework("Foundation");
 
@@ -62,7 +73,7 @@ fn setupBdwgcDependencies(
 
     inline for (c_source_files) |src| {
         compile.addCSourceFile(.{
-            .file = b.path("bdwgc-master/" ++ src),
+            .file = b.path("bdwgc/" ++ src),
         });
     }
 }
