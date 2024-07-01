@@ -1,18 +1,6 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    blk: {
-        var dir = std.fs.cwd().openDir("bdwgc", .{
-            .iterate = true,
-        }) catch break :blk;
-        defer dir.close();
-        var iter = dir.iterate();
-        if (iter.next() catch break :blk == null) {
-            std.debug.print("submodule bdwgc missing. Please run `git submodule update --init --recursive`.\n", .{});
-            return;
-        }
-    }
-
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
