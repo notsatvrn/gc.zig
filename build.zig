@@ -1,42 +1,44 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    // const dir = try std.fs.cwd().openDir("bdwgc", .{});
-    // defer dir.close();
-    // var count = 0;
-    // var iter = dir.iterate();
-    // while (try iter.next()) |_| {
-    //     count += 1;
-    // }
-    // if (count == 0) {
-    //     b.run(.{"git submodule update --init --recursive"});
-    // }
+    blk: {
+        var dir = std.fs.cwd().openDir("bdwgc", .{
+            .iterate = true,
+        }) catch break :blk;
+        defer dir.close();
+        var iter = dir.iterate();
+        if (iter.next() catch break :blk == null) {
+            std.debug.print("submodule bdwgc missing. Please run `git submodule update --init --recursive`.\n", .{});
+        }
+    }
 
     const target = b.standardTargetOptions(.{});
-
     const optimize = b.standardOptimizeOption(.{});
 
-    const lib = b.addStaticLibrary(.{
-        .name = "garbage-collector",
-        .root_source_file = b.path("src/gc.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    setupBdwgcDependencies(lib, b, target);
+    {
+        const lib = b.addStaticLibrary(.{
+            .name = "garbage-collector",
+            .root_source_file = b.path("src/gc.zig"),
+            .target = target,
+            .optimize = optimize,
+        });
+        setupBdwgcDependencies(lib, b, target);
 
-    b.installArtifact(lib);
+        b.installArtifact(lib);
+    }
+    {
+        const lib_unit_tests = b.addTest(.{
+            .root_source_file = b.path("src/gc.zig"),
+            .target = target,
+            .optimize = optimize,
+        });
+        setupBdwgcDependencies(lib_unit_tests, b, target);
 
-    const lib_unit_tests = b.addTest(.{
-        .root_source_file = b.path("src/gc.zig"),
-        .target = target,
-        .optimize = optimize,
-    });
-    setupBdwgcDependencies(lib_unit_tests, b, target);
+        const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
 
-    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
-
-    const test_step = b.step("test", "Run unit tests");
-    test_step.dependOn(&run_lib_unit_tests.step);
+        const test_step = b.step("test", "Run unit tests");
+        test_step.dependOn(&run_lib_unit_tests.step);
+    }
 }
 
 fn setupBdwgcDependencies(
