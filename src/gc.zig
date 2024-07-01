@@ -81,6 +81,35 @@ pub fn allocator() std.mem.Allocator {
     };
 }
 
+pub fn getHeapSize() usize {
+    return c.GC_get_heap_size();
+}
+
+/// Count total memory use in bytes by all allocated blocks.  Acquires
+/// the lock.
+pub fn getMemoryUse() usize {
+    return c.GC_get_memory_use();
+}
+
+///  Trigger a full world-stopped collection.  Abort the collection if
+///  and when stopFn returns a nonzero value.  stopFn will be
+///  called frequently, and should be reasonably fast.  (stopFn is
+///  called with the allocation lock held and the world might be stopped;
+///  it's not allowed for stopFn to manipulate pointers to the garbage
+///  collected heap or call most of GC functions.)  This works even
+///  if virtual dirty bits, and hence incremental collection is not
+///  available for this architecture.  Collections can be aborted faster
+///  than normal pause times for incremental collection.  However,
+///  aborted collections do no useful work; the next collection needs
+///  to start from the beginning.  stopFn must not be 0.
+///  GC_try_to_collect() returns 0 if the collection was aborted (or the
+///  collections are disabled), 1 if it succeeded.
+pub fn collect(stopFn: c.GC_stop_func) !void {
+    if (c.GC_try_to_collect(stopFn) == 0) {
+        return error.CollectionAborted;
+    }
+}
+
 test "GCAllocator" {
     const alloc = allocator();
 
