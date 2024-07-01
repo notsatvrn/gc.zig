@@ -118,3 +118,17 @@ test "GCAllocator" {
     try std.heap.testAllocatorAlignedShrink(alloc);
     try std.heap.testAllocatorLargeAlignment(alloc);
 }
+
+test "GCAllocator sanity check" {
+    const alloc = allocator();
+
+    var ptr: ?*[1048576]u8 = undefined;
+    for (0..100) |_| {
+        ptr = try alloc.create([1048576]u8);
+    }
+    ptr = null;
+
+    try collect(null);
+
+    try std.testing.expect(getMemoryUse() < 1048576 * 90);
+}
