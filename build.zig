@@ -5,11 +5,12 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const module = blk: {
-        const module = b.addModule("garbage-collector", .{
-            .root_source_file = b.path("src/gc.zig"),
+        const module = b.addModule("gc", .{
+            .root_source_file = b.path("src/module.zig"),
             .target = target,
             .optimize = optimize,
         });
+
         module.link_libc = true;
         if (target.result.isDarwin()) module.linkFramework("Foundation", .{});
         module.addIncludePath(b.path("bdwgc/include"));
@@ -46,7 +47,7 @@ pub fn build(b: *std.Build) void {
 
     {
         const lib_unit_tests = b.addTest(.{
-            .root_source_file = b.path("src/gc.zig"),
+            .root_source_file = b.path("src/module.zig"),
             .target = target,
             .optimize = optimize,
         });
