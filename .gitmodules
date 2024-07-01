@@ -1,0 +1,6 @@
+[submodule "bdwgc*"]
+	path = bdwgc*
+	url = https://github.com/ivmai/bdwgc
+[submodule "bdwgc"]
+	path = bdwgc
+	url = https://github.com/ivmai/bdwgc
