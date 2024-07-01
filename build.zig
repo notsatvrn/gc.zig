@@ -9,6 +9,7 @@ pub fn build(b: *std.Build) void {
         var iter = dir.iterate();
         if (iter.next() catch break :blk == null) {
             std.debug.print("submodule bdwgc missing. Please run `git submodule update --init --recursive`.\n", .{});
+            return;
         }
     }
 
