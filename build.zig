@@ -46,14 +46,14 @@ pub fn build(b: *std.Build) void {
     };
 
     {
-        const lib_unit_tests = b.addTest(.{
+        const module_unit_tests = b.addTest(.{
             .root_source_file = b.path("src/module.zig"),
             .target = target,
             .optimize = optimize,
         });
-        lib_unit_tests.root_module = module.*;
+        module_unit_tests.root_module = module.*;
 
-        const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+        const run_lib_unit_tests = b.addRunArtifact(module_unit_tests);
 
         const test_step = b.step("test", "Run unit tests");
         test_step.dependOn(&run_lib_unit_tests.step);
