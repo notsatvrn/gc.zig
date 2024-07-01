@@ -86,6 +86,6 @@ test "GCAllocator" {
 
     try std.heap.testAllocator(alloc);
     try std.heap.testAllocatorAligned(alloc);
-    try std.heap.testAllocatorLargeAlignment(alloc);
     try std.heap.testAllocatorAlignedShrink(alloc);
+    try std.heap.testAllocatorLargeAlignment(alloc);
 }
