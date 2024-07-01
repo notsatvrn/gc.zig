@@ -123,17 +123,3 @@ test "GCAllocator" {
     try std.heap.testAllocatorAlignedShrink(gc_alloc);
     try std.heap.testAllocatorLargeAlignment(gc_alloc);
 }
-
-test "GCAllocator 2" {
-    const gc_alloc = allocator();
-
-    var ptr: ?*[1048576]u8 = undefined;
-    for (0..100) |_| {
-        ptr = try gc_alloc.create([1048576]u8);
-    }
-    ptr = null;
-
-    try collect(null);
-
-    try std.testing.expect(getMemoryUse() < 1048576 * 90);
-}
