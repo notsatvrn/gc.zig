@@ -7,9 +7,9 @@ a [Zig](https://ziglang.org/) garbage collector interface for the [bdwgc Boehm G
 const zig_gc = @import("zig_gc");
 
 pub fn main() !void {
-    const allocator = zig_gc.BdwGarbageCollector.allocator();
+    const gc = zig_gc.BdwGarbageCollector.gc();
 
-    var list = std.ArrayList(u8).init(allocator);
+    var list = std.ArrayList(u8).init(gc.allocator());
 
     try list.append("Hello");
     try list.append("World");
@@ -21,10 +21,10 @@ pub fn main() !void {
 
 ## install
 
-1. Add to the depency list in `build.zig.zon`: 
+1. Add `zig_gc` to the depency list in `build.zig.zon`: 
 
 ```sh
-zig fetch --save https://github.com/jinzhongjia/zTroy/archive/main.tar.gz
+zig fetch --save https://github.com/johan0A/gc.zig/archive/refs/tags/0.1.0.tar.gz
 ```
 
 2. Config `build.zig`:
