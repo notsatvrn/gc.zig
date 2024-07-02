@@ -7,9 +7,9 @@ a [Zig](https://ziglang.org/) garbage collector interface for the [bdwgc Boehm G
 const zig_gc = @import("zig_gc");
 
 pub fn main() !void {
-    const gc = zig_gc.BdwGarbageCollector.allocator();
+    const allocator = zig_gc.BdwGarbageCollector.allocator();
 
-    var list = std.ArrayList(u8).init(gc);
+    var list = std.ArrayList(u8).init(allocator);
 
     try list.append("Hello");
     try list.append("World");
