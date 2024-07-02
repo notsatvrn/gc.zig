@@ -115,6 +115,13 @@ pub fn collect(stopFn: c.GC_stop_func) !void {
     }
 }
 
+// Perform the collector shutdown.  (E.g. dispose critical sections on
+// Win32 target.)  A duplicate invocation is a no-op.  GC_INIT should
+// not be called after the shutdown.  See also GC_win32_free_heap().
+pub fn deinit() void {
+    c.GC_deinit();
+}
+
 test "GCAllocator" {
     const gc_alloc = allocator();
 

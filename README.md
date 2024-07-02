@@ -7,9 +7,11 @@ a [Zig](https://ziglang.org/) garbage collector interface for the [bdwgc Boehm G
 const zig_gc = @import("zig_gc");
 
 pub fn main() !void {
-    const gc = zig_gc.BdwGarbageCollector.gc();
+    // create a new garbage collector interface
+    const gc = zig_gc.BdwGarbageCollector.gc(); 
 
-    var list = std.ArrayList(u8).init(gc.allocator());
+    // coerce the gc interface to the standard allocator interface before passing it to ArrayList
+    var list = std.ArrayList(u8).init(gc.allocator()); 
 
     try list.append("Hello");
     try list.append("World");
@@ -18,6 +20,11 @@ pub fn main() !void {
     // the program will exit without memory leaks :D
 }
 ```
+Why use a specialized garbage collector interface? (`Gc`) <br>
+1. It signals to the caller that the function was made with the intention of using a garbage collector.
+2. (not yet implemented) The garbage collector can benefit from more information being passsed in about the allocation for better performance. For example, if the allocationg contains pointers or not. And that is not possible with the standard allocator interface.
+
+otherwise, the BdwGarbageCollector acts similarely to a standard allocator and can be used with the standard allocator interface by using `Gc.allocator(self: Gc)` or `BdwGarbageCollector.allocator()`.
 
 ## install
 
