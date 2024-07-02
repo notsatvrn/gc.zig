@@ -36,7 +36,7 @@ const zig_gc = b.dependency("zig_gc", .{
     .optimize = optimize,
 });
 
-exe.root_module.addImport("zig_gc", zTroy.module("zig_gc"));
+exe.root_module.addImport("zig_gc", zig_gc.module("zig_gc"));
 ...
 ```
 
