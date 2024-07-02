@@ -13,8 +13,8 @@ pub fn main() !void {
     // coerce the gc interface to the standard allocator interface before passing it to ArrayList
     var list = std.ArrayList(u8).init(gc.allocator()); 
 
-    try list.append("Hello");
-    try list.append("World");
+    try list.appendSlice("Hello");
+    try list.appendSlice(" World");
 
     std.debug.print("{s}\n", .{list.items});
     // the program will exit without memory leaks :D
