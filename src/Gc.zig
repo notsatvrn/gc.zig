@@ -1,10 +1,6 @@
 //! A garbage collector interface. This interface signals to the caller that the function was made with the intention of using a garbage collector.
 
 const std = @import("std");
-const assert = std.debug.assert;
-const math = std.math;
-const mem = std.mem;
-const builtin = @import("builtin");
 const Allocator = std.mem.Allocator;
 
 const Gc = @This();
