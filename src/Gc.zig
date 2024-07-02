@@ -9,8 +9,12 @@ pub const Error = Allocator.Error;
 
 gc_allocator: Allocator,
 
-pub fn init(allocator: Allocator) Gc {
-    return .{ .allocator = allocator };
+pub fn allocator(self: Gc) Allocator {
+    return self.gc_allocator;
+}
+
+pub fn init(gc_allocator: Allocator) Gc {
+    return .{ .gc_allocator = gc_allocator };
 }
 
 /// This function is not intended to be called except from within the
@@ -162,8 +166,8 @@ pub fn dupeZ(self: Gc, comptime T: type, m: []const T) Error![:0]T {
 }
 
 test "Gc.zig" {
-    const allocator = std.heap.page_allocator;
-    var arena = std.heap.ArenaAllocator.init(allocator);
+    const allocator_ = std.heap.page_allocator;
+    var arena = std.heap.ArenaAllocator.init(allocator_);
     defer arena.deinit();
     const gc_alloc = Gc.init(arena.allocator());
     const arena_alloc = arena.allocator();
