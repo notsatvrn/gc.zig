@@ -1,5 +1,5 @@
 # gc.zig
-a [Zig](https://ziglang.org/) garbage collector package that provides a garbage collector interface for the [bdwgc Boehm GC](https://github.com/ivmai/bdwgc) garbage collector and more.
+a [Zig](https://ziglang.org/) garbage collector package that provides a garbage collector interface as well as the [bdwgc Boehm GC](https://github.com/ivmai/bdwgc) garbage collector and more.
 
 ## Usage
 
