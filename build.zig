@@ -9,7 +9,7 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("src/module.zig"),
             .target = target,
             .optimize = optimize,
-            .link_libc = true;
+            .link_libc = true,
         });
 
         if (target.result.isDarwin()) module.linkFramework("Foundation", .{});
