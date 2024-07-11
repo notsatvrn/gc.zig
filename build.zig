@@ -9,9 +9,9 @@ pub fn build(b: *std.Build) void {
             .root_source_file = b.path("src/module.zig"),
             .target = target,
             .optimize = optimize,
+            .link_libc = true;
         });
 
-        module.link_libc = true;
         if (target.result.isDarwin()) module.linkFramework("Foundation", .{});
         module.addIncludePath(b.path("bdwgc/include"));
 
