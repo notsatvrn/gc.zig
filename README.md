@@ -31,7 +31,7 @@ otherwise, the BdwGarbageCollector acts similarely to a standard allocator and c
 1. Add `zig_gc` to the depency list in `build.zig.zon`: 
 
 ```sh
-zig fetch --save https://github.com/johan0A/gc.zig/archive/refs/tags/1.0.0.tar.gz
+zig fetch --save https://github.com/johan0A/gc.zig/archive/refs/tags/0.2.0.tar.gz
 ```
 
 2. Config `build.zig`:
