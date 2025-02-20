@@ -1,7 +1,6 @@
 const std = @import("std");
-const Gc = @import("Gc.zig");
-
 const Allocator = std.mem.Allocator;
+const Alignment = std.mem.Alignment;
 
 const c = @cImport(
     @cInclude("gc.h"),
@@ -16,7 +15,7 @@ fn getHeader(ptr: [*]u8) *[*]u8 {
 fn alloc(
     _: *anyopaque,
     len: usize,
-    log2_align: u8,
+    alignment: Alignment,
     _: usize,
 ) ?[*]u8 {
     std.debug.assert(len > 0);
@@ -24,10 +23,10 @@ fn alloc(
     // Thin wrapper around GC_malloc, overallocate to account for
     // alignment padding and store the original malloc()'ed pointer before
     // the aligned address.
-    const alignment = @as(usize, 1) << @as(Allocator.Log2Align, @intCast(log2_align));
-    const unaligned_ptr = @as([*]u8, @ptrCast(c.GC_malloc(len + alignment - 1 + @sizeOf(usize)) orelse return null));
+    const align_ = alignment.toByteUnits();
+    const unaligned_ptr: [*]u8 = @ptrCast(c.GC_malloc(len + align_ - 1 + @sizeOf(usize)) orelse return null);
     const unaligned_addr = @intFromPtr(unaligned_ptr);
-    const aligned_addr = std.mem.alignForward(usize, unaligned_addr + @sizeOf(usize), alignment);
+    const aligned_addr = std.mem.alignForward(usize, unaligned_addr + @sizeOf(usize), align_);
     const aligned_ptr = unaligned_ptr + (aligned_addr - unaligned_addr);
     getHeader(aligned_ptr).* = unaligned_ptr;
 
@@ -43,7 +42,7 @@ fn allocSize(ptr: [*]u8) usize {
 fn resize(
     _: *anyopaque,
     buf: []u8,
-    _: u8,
+    _: Alignment,
     new_len: usize,
     _: usize,
 ) bool {
@@ -55,37 +54,57 @@ fn resize(
     return false;
 }
 
+fn remap(
+    _: *anyopaque,
+    buf: []u8,
+    alignment: Alignment,
+    new_len: usize,
+    _: usize,
+) ?[*]u8 {
+    if (new_len <= buf.len) return buf.ptr;
+
+    const full_len = allocSize(buf.ptr);
+    if (new_len <= full_len) return buf.ptr;
+
+    const align_ = alignment.toByteUnits();
+    const old_unaligned_ptr = getHeader(buf.ptr).*;
+    const unaligned_ptr: [*]u8 = @ptrCast(c.GC_realloc(old_unaligned_ptr, new_len + align_ - 1 + @sizeOf(usize)) orelse return null);
+    const unaligned_addr = @intFromPtr(unaligned_ptr);
+    const aligned_addr = std.mem.alignForward(usize, unaligned_addr + @sizeOf(usize), align_);
+    const aligned_ptr = unaligned_ptr + (aligned_addr - unaligned_addr);
+    getHeader(aligned_ptr).* = unaligned_ptr;
+
+    return aligned_ptr;
+}
+
 fn free(
     _: *anyopaque,
     buf: []u8,
-    log2_buf_align: u8,
+    alignment: Alignment,
     return_address: usize,
 ) void {
-    _ = log2_buf_align;
+    _ = alignment;
     _ = return_address;
     const unaligned_ptr = getHeader(buf.ptr).*;
     c.GC_free(unaligned_ptr);
 }
 
 pub fn allocator() Allocator {
-    if (c.GC_is_init_called() == 0) {
+    if (c.GC_is_init_called() == 0)
         c.GC_init();
-    }
 
     return Allocator{
         .ptr = undefined,
         .vtable = &.{
             .alloc = alloc,
             .resize = resize,
+            .remap = remap,
             .free = free,
         },
     };
 }
 
-pub fn gc() Gc {
-    return Gc.init(allocator());
-}
-
+/// Returns the current heap size of used memory.
 pub fn getHeapSize() usize {
     return c.GC_get_heap_size();
 }
@@ -96,23 +115,26 @@ pub fn getMemoryUse() usize {
     return c.GC_get_memory_use();
 }
 
-///  Trigger a full world-stopped collection.  Abort the collection if
-///  and when stopFn returns a nonzero value.  stopFn will be
-///  called frequently, and should be reasonably fast.  (stopFn is
-///  called with the allocation lock held and the world might be stopped;
-///  it's not allowed for stopFn to manipulate pointers to the garbage
-///  collected heap or call most of GC functions.)  This works even
-///  if virtual dirty bits, and hence incremental collection is not
-///  available for this architecture.  Collections can be aborted faster
-///  than normal pause times for incremental collection.  However,
-///  aborted collections do no useful work; the next collection needs
-///  to start from the beginning.  stopFn must not be 0.
-///  GC_try_to_collect() returns 0 if the collection was aborted (or the
-///  collections are disabled), 1 if it succeeded.
-pub fn collect(stopFn: c.GC_stop_func) !void {
-    if (c.GC_try_to_collect(stopFn) == 0) {
-        return error.CollectionAborted;
-    }
+/// Disable garbage collection.
+pub fn disable() void {
+    c.GC_disable();
+}
+
+/// Enables garbage collection. GC is enabled by default so this is
+/// only useful if you called disable earlier.
+pub fn enable() void {
+    c.GC_enable();
+}
+
+/// Performs a full, stop-the-world garbage collection. With leak detection
+/// enabled this will output any leaks as well.
+pub fn collect() void {
+    c.GC_gcollect();
+}
+
+/// Perform some garbage collection. Returns zero when work is done.
+pub fn collectLittle() usize {
+    return @intCast(c.GC_collect_a_little());
 }
 
 // Perform the collector shutdown.  (E.g. dispose critical sections on
@@ -124,6 +146,13 @@ pub fn deinit() void {
 
 test "GCAllocator" {
     const gc_alloc = allocator();
+
+    _ = getHeapSize();
+    _ = getMemoryUse();
+    disable();
+    enable();
+    collect();
+    _ = collectLittle();
 
     try std.heap.testAllocator(gc_alloc);
     try std.heap.testAllocatorAligned(gc_alloc);

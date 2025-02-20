@@ -51,7 +51,7 @@ pub fn build(b: *std.Build) void {
             .target = target,
             .optimize = optimize,
         });
-        module_unit_tests.root_module = module.*;
+        module_unit_tests.root_module = module;
 
         const run_lib_unit_tests = b.addRunArtifact(module_unit_tests);
 
