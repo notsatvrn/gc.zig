@@ -5,8 +5,8 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
 
     const module = blk: {
-        const module = b.addModule("zig_gc", .{
-            .root_source_file = b.path("src/module.zig"),
+        const module = b.addModule("zig-gc", .{
+            .root_source_file = b.path("src/root.zig"),
             .target = target,
             .optimize = optimize,
             .link_libc = true,
@@ -37,11 +37,9 @@ pub fn build(b: *std.Build) void {
             "typd_mlc.c",
         };
 
-        inline for (c_source_files) |src| {
-            module.addCSourceFile(.{
-                .file = b.path("bdwgc/" ++ src),
-            });
-        }
+        inline for (c_source_files) |src|
+            module.addCSourceFile(.{ .file = b.path("bdwgc/" ++ src) });
+
         break :blk module;
     };
 
